@@ -1,49 +1,35 @@
-import Document, { Head, Main, NextScript } from "next/document";
+import isDev from 'electron-is-dev';
+import Document, { Head, Main, NextScript } from 'next/document';
 import flush from 'styled-jsx/server';
-import React from 'react';
-import spriteBuild from 'svg-sprite-loader/runtime/sprite.build';
 
-const sprites = spriteBuild.stringify();
-
-const csp =
-  "default-src 'self' 'unsafe-inline'; \
-connect-src http://localhost:8545; \
-font-src data: file:;";
-
-const env = [
-  'GRAPHQL_REMOTE_WS',
-  'GRAPHQL_REMOTE_HTTP',
-  'JSON_RPC_ENDPOINT',
-  'TRACK',
-].map((key) => `window.${key}=${JSON.stringify(process.env[key])};`).join('');
+const sprites = require('svg-sprite-loader/runtime/sprite.build').stringify();
 
 export default class MyDocument extends Document {
   static getInitialProps({ renderPage }) {
     const { html, head, errorHtml, chunks } = renderPage();
-    const styles = flush();
-    return { html, head, errorHtml, chunks, styles };
+    return { html, head, errorHtml, chunks, styles: flush() };
   }
 
   public render() {
+    const csp = isDev ?
+      `default-src 'self' 'unsafe-inline'; connect-src http://localhost:3000 ${process.env.JSON_RPC_ENDPOINT}; font-src data: http://localhost:3000;` :
+      `default-src 'self' 'unsafe-inline'; connect-src ${process.env.JSON_RPC_ENDPOINT}; font-src data: file:;`;
+    
     return (
       <html lang="en">
         <Head>
-          <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1, shrink-to-fit=no"
-          />
+          <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
           <meta name="theme-color" content="#000000" />
+          <meta httpEquiv="Content-Security-Policy" content={csp} />
           <link rel="manifest" href="./static/manifest.json" />
           <link rel="shortcut icon" href="./static/favicon.png?v=2" />
           <link rel="stylesheet" href="./static/css/semantic.min.css" />
           <link rel="stylesheet" href="./static/css/overwrites.css" />
-          <script src="./static/tracking.js" />
           <title>Melon Olympiad</title>
         </Head>
         <body>
           <div dangerouslySetInnerHTML={{ __html: sprites }} />
           <Main />
-          <script dangerouslySetInnerHTML={{ __html: env }} />
           <NextScript />
         </body>
       </html>

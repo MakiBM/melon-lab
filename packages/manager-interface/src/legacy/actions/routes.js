@@ -22,8 +22,8 @@ export const routeMap = {
   [types.WALLET_CREATE]: '/wallet/create',
   [types.WALLET_IMPORT]: '/wallet/import',
   [types.WALLET]: '/wallet',
-  [types.FUND]: '/:address',
-  [types.COMPETITION]: '/:address/competition',
+  [types.FUND]: '/fund?address=:address',
+  [types.COMPETITION]: '/competition?address=:address',
 };
 
 export const actions = {

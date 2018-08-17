@@ -1,4 +1,3 @@
-import * as MessageTypes from './message-types';
 import {
   parse,
   execute,
@@ -18,6 +17,12 @@ import {
   forAwaitEach,
   isAsyncIterable,
 } from 'iterall';
+
+const GQL_START = 'start'; // Client -> Server
+const GQL_STOP = 'stop'; // Client -> Server
+const GQL_DATA = 'data'; // Server -> Client
+const GQL_ERROR = 'error'; // Server -> Client
+const GQL_COMPLETE = 'complete'; // Server -> Client
 
 export const createEmptyIterable = (): AsyncIterator<any> => {
   return {
@@ -109,7 +114,7 @@ export class SubscriptionServer {
     const messenger = event.sender;
 
     switch (type) {
-      case MessageTypes.GQL_START:
+      case GQL_START:
         if (this.operations && this.operations[id]) {
           this.unsubscribe(id);
         }
@@ -132,13 +137,13 @@ export class SubscriptionServer {
           })
           .then(iterable => {
             forAwaitEach(iterable as any, (value: ExecutionResult) => {
-              this.sendMessage(messenger, id, MessageTypes.GQL_DATA, value);
+              this.sendMessage(messenger, id, GQL_DATA, value);
             })
               .then(() => {
-                this.sendMessage(messenger, id, MessageTypes.GQL_COMPLETE, null);
+                this.sendMessage(messenger, id, GQL_COMPLETE, null);
               })
               .catch((error: Error) => {
-                this.sendMessage(messenger, id, MessageTypes.GQL_ERROR, error);
+                this.sendMessage(messenger, id, GQL_ERROR, error);
               });
 
             return iterable;
@@ -148,11 +153,11 @@ export class SubscriptionServer {
           })
           .catch((e: any) => {
             if (e.errors) {
-              this.sendMessage(messenger, id, MessageTypes.GQL_DATA, {
+              this.sendMessage(messenger, id, GQL_DATA, {
                 errors: e.errors,
               });
             } else {
-              this.sendMessage(messenger, id, MessageTypes.GQL_ERROR, {
+              this.sendMessage(messenger, id, GQL_ERROR, {
                 message: e.message,
               });
             }
@@ -160,12 +165,12 @@ export class SubscriptionServer {
             this.unsubscribe(id);
           });
 
-      case MessageTypes.GQL_STOP:
+      case GQL_STOP:
         this.unsubscribe(id);
         break;
 
       default:
-        this.sendMessage.call(this, messenger, id, MessageTypes.GQL_ERROR, {
+        this.sendMessage.call(this, messenger, id, GQL_ERROR, {
           message: 'Invalid message type.',
         });
     }

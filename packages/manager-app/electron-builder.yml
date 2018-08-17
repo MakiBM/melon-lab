@@ -7,14 +7,14 @@ asar: true
 extends: null
 
 directories:
-  output: build/app/package/
-  buildResources: src/static/
+  output: package
+  buildResources: renderer/src/static
 
 files:
   - package.json
-  - from: build/app/main
+  - from: main/build
     to: .
-  - from: build/app/export
+  - from: renderer/export
     to: .
   - .env
   - .env.defaults

@@ -3,31 +3,15 @@ require('dotenv-extended').config();
 const path = require('path');
 const fs = require('fs');
 const externals = require('webpack-node-externals');
-
-// Retrieve the absolute path of the linked package.
-const resolveWorkspace = (name, directory) => {
-  const [, package] = name.split('/');
-  return path.resolve(__dirname, '..', package, directory);
-};
-
-const resolveWorkspaces = pairs => {
-  const workspaces = pairs.reduce((carry, [name, directory]) => {
-    return {
-      ...carry,
-      [name]: resolveWorkspace(name, directory),
-    };
-  }, {});
-
-  return workspaces;
-};
+const resolveWorkspaces = require('@melonproject/manager-interface/config/resolveWorkspaces');
 
 module.exports = {
   webpack: (config, options, webpack) => {
     config.target = 'electron-main';
-    config.output.path = path.resolve(__dirname, 'build', 'app', 'main');
+    config.output.path = path.resolve(__dirname, 'main', 'build');
     config.entry = {
-      main: './src/electron/main.ts',
-      preload: './src/electron/preload.ts',
+      main: './main/src/index.ts',
+      preload: './main/src/preload.ts',
     };
 
     config.resolve.extensions.push('.ts', '.node');
@@ -36,13 +20,6 @@ module.exports = {
       ['@melonproject/graphql-schema', 'src'],
       ['@melonproject/exchange-aggregator', 'src'],
     ]);
-
-    const src = path.resolve(__dirname, 'src');
-
-    config.resolve.alias = Object.assign({}, config.resolve.alias || {}, {
-      '~/shared': path.join(src, 'shared'),
-      '~/legacy': path.join(src, 'legacy'),
-    });
 
     config.module.rules.map(rule => {
       if (rule.loader && rule.loader.match('babel-loader')) {
@@ -70,32 +47,10 @@ module.exports = {
         {
           loader: 'ts-loader',
           options: {
-            configFile: path.resolve(__dirname, 'tsconfig.json'),
+            configFile: path.resolve(__dirname, 'main', 'tsconfig.json'),
             transpileOnly: true,
           },
         },
-      ],
-    });
-
-    config.module.rules.push({
-      test: /\.css$/,
-      use: [
-        {
-          loader: 'emit-file-loader',
-          options: {
-            name: 'dist/styles/[folder]/[name].[ext].js'
-          }
-        },
-        {
-          loader: 'babel-loader',
-          options: {
-            babelrc: false,
-            plugins: [
-              ['styled-jsx/babel', { plugins: ['styled-jsx-plugin-postcss'] }],
-            ],
-          },
-        },
-        'styled-jsx-css-loader',
       ],
     });
 
@@ -119,7 +74,7 @@ module.exports = {
     });
 
     config.externals = externals({
-      modulesDir: path.resolve(process.cwd(), '..', '..', 'node_modules'),
+      modulesDir: path.resolve(__dirname, '..', '..', 'node_modules'),
       whitelist: [/^@melonproject\//],
     });
 

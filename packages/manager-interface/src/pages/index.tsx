@@ -1,13 +1,11 @@
-import ReactModal from 'react-modal';
 import AppContainer from '~/legacy/containers/App';
+import withReduxStore from '~/wrappers/withReduxStore';
+import { Provider as ReduxProvider } from 'react-redux';
 
-if (typeof window !== 'undefined') {
-  ReactModal.setAppElement('#__next');
+const Index = ({ redux, ...props }) => (
+  <ReduxProvider store={redux}>
+    <AppContainer {...props} />
+  </ReduxProvider>
+);
 
-  if (process.env.NODE_ENV !== 'development' && !ELECTRON) {
-    window.onbeforeunload = () =>
-      "Your session will be terminated. Did you save your mnemonic and/or JSON wallet?";
-  }
-}
-
-export default AppContainer;
+export default withReduxStore(Index);

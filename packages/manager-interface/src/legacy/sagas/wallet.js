@@ -9,7 +9,6 @@ import {
   getEnvironment,
   setEnvironment,
 } from '@melonproject/melon.js';
-import ipcMessages from '~/shared/constants/ipcMessages';
 import sendIpcMessage from '~/legacy/utils/sendIpcMessage';
 import { actions as modalActions, types as modalTypes } from '../actions/modal';
 import { types, actions } from '../actions/wallet';
@@ -32,7 +31,7 @@ function* loadWallet() {
       let password;
 
       if (isElectron) {
-        const wallets = yield sendIpcMessage(ipcMessages.GET_WALLETS);
+        const wallets = yield sendIpcMessage('get-wallets');
         if (wallets.length > 0) {
           yield put(
             wallets.length > 1
@@ -165,7 +164,7 @@ function* storeWallet(decryptedWallet, encryptedWalletParam) {
 
       if (isElectron) {
         yield sendIpcMessage(
-          ipcMessages.STORE_WALLET,
+          'store-wallet',
           decryptedWallet.address,
           encryptedWalletString,
         );
@@ -230,7 +229,7 @@ function* deleteWallet() {
   localStorage.removeItem('wallet:melon.fund');
   if (isElectron) {
     try {
-      const deleted = yield sendIpcMessage(ipcMessages.DELETE_WALLET, address);
+      const deleted = yield sendIpcMessage('delete-wallet', address);
       yield put(
         deleted
           ? modalActions.info({

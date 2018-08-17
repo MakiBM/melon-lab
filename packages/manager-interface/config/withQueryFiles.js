@@ -19,7 +19,7 @@ module.exports = (nextConfig = {}) =>
       config.module.rules.unshift({
         test: /\/schema\.gql$/,
         exclude: /node_modules/,
-        loader: require.resolve(path.resolve(process.cwd(), 'introspect.js')),
+        loader: require.resolve('@melonproject/graphql-schema/introspect.js'),
       });
 
       return config;

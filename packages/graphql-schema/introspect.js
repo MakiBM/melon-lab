@@ -5,7 +5,6 @@ module.exports = function (content, map, meta) {
 
   const { graphql } = require('graphql');
   const { buildSchema, introspectionQuery } = require('graphql/utilities');
-  
   graphql(buildSchema(content), introspectionQuery).then(result => {
     callback(null, `module.exports = ${JSON.stringify(result.data)}`, map, meta);
   });

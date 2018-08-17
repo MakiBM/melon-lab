@@ -1,56 +1,19 @@
-process.env.JSON_RPC_ENDPOINT = "http://localhost:8545/"
-process.env.TRACK = "live"
-
 import electron from 'electron';
-import debug from 'electron-debug';
 import isDev from 'electron-is-dev';
 import http from 'http';
-import next from 'next';
 import path from 'path';
 import url from 'url';
-import startServer from './server';
-
-import installExtension, {
-  REACT_DEVELOPER_TOOLS,
-  REDUX_DEVTOOLS,
-} from 'electron-devtools-installer';
 
 const isWindows = process.platform === 'win32';
 
-// debug({ enabled: true, showDevTools: true });
-
-const appUrl = async () => {
-  if (!isDev) {
-    return url.format({
-      pathname: 'index.html',
-      protocol: 'file:',
-      slashes: true,
-    });
-  }
-
-  const app = next({
-    dev: true,
-    // TODO: Figure out the proper path.
-    dir: path.resolve('...'),
-  });
-
-  await app.prepare();
-
-  const server = http.createServer(app.getRequestHandler());
-
-  server.listen(3000, () => {
-    // Make sure to stop the server when the app closes
-    // Otherwise it keeps running on its own
-    electron.app.on('before-quit', () => server.close());
-  });
-};
+if (isDev) {
+  require('electron-debug')({ enabled: true, showDevTools: true });
+}
 
 let mainWindow;
 const restoreMainWindow = async () => {
-  await startServer();
-
-  // Create the Application's main menu
-  const template = [
+  // Create the application's main menu.
+  electron.Menu.setApplicationMenu(electron.Menu.buildFromTemplate([
     {
       label: 'Application',
       submenu: [
@@ -71,9 +34,7 @@ const restoreMainWindow = async () => {
         { label: 'Paste', accelerator: 'CmdOrCtrl+V', selector: 'paste:' },
       ],
     },
-  ];
-
-  electron.Menu.setApplicationMenu(electron.Menu.buildFromTemplate(template));
+  ]));
 
   mainWindow = new electron.BrowserWindow({
     width: 1024,
@@ -84,21 +45,45 @@ const restoreMainWindow = async () => {
     },
   });
 
-  const handleRedirect = (e, url) => {
+  const handleRedirect = (event, url) => {
     if (url !== mainWindow.webContents.getURL()) {
-      e.preventDefault();
-      require('electron').shell.openExternal(url);
+      event.preventDefault();
+      electron.shell.openExternal(url);
     }
   };
 
   mainWindow.webContents.on('will-navigate', handleRedirect);
   mainWindow.webContents.on('new-window', handleRedirect);
-
-  mainWindow.loadURL(await appUrl());
-
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+
+  if (isDev) {
+    // Do not load next in the production build.
+    const next = require('next')({ dev: true, dir: './renderer/src' });
+    const requestHandler = next.getRequestHandler();
+
+    // Build the renderer code and watch the files.
+    await next.prepare();
+
+    // Start the http server (with hot code reloading).
+    await new Promise((resolve) => {
+      const server = http.createServer(requestHandler);
+
+      server.listen(3000, () => {
+        // Make sure to stop the server when the app closes.
+        electron.app.on('before-quit', () => server.close())
+
+        resolve();
+      });
+    });
+  }
+
+  mainWindow.loadURL(isDev ? 'http://localhost:3000/' : url.format({
+    pathname: 'index.html',
+    protocol: 'file:',
+    slashes: true,
+  }));
 };
 
 electron.app.on('window-all-closed', () => {
@@ -121,14 +106,17 @@ electron.app.on('ready', () => {
 
       callback(path.normalize(path.join(__dirname, reqUrlFinal)));
     });
+  }
+  else {
+    const { default: install, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = require('electron-devtools-installer');
 
-    installExtension(REACT_DEVELOPER_TOOLS)
+    install(REACT_DEVELOPER_TOOLS)
       .then(name => console.log(`Added Extension:  ${name}`))
-      .catch(err => console.log('An error occurred: ', err));
+      .catch(error => console.error('An error occurred: ', error));
 
-    installExtension(REDUX_DEVTOOLS)
+    install(REDUX_DEVTOOLS)
       .then(name => console.log(`Added Extension:  ${name}`))
-      .catch(err => console.log('An error occurred: ', err));
+      .catch(error => console.error('An error occurred: ', error));
   }
 
   restoreMainWindow();

@@ -1,0 +1,43 @@
+{
+  "name": "@melonproject/manager-app",
+  "description": "Melon interface",
+  "homepage": "http://melonport.com",
+  "version": "0.8.3",
+  "private": true,
+  "license": "AGPL-3.0",
+  "main": "main.js",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development backpack dev",
+    "build": "backpack build && next build renderer/src && next export renderer/src -o renderer/export",
+    "package": "electron-builder",
+    "clean": "rimraf package main/build renderer/build renderer/export"
+  },
+  "author": "Melonport <team@melonport.com>",
+  "contributors": [
+    "Sebastian Siemssen <fubhy@fubhy.com>"
+  ],
+  "devDependencies": {
+    "backpack-core": "^0.7.0",
+    "cross-env": "^5.1.5",
+    "debug": "2.6.9",
+    "dotenv-extended": "^2.0.1",
+    "electron": "^2.0.0",
+    "electron-builder": "^20.15.3",
+    "electron-debug": "^2.0.0",
+    "electron-devtools-installer": "^2.2.4",
+    "next": "^6.0.0",
+    "prettier": "^1.11.1",
+    "rimraf": "^2.6.2",
+    "tslint": "^5.9.1",
+    "tslint-config-prettier": "^1.10.0",
+    "tslint-react": "^3.5.1",
+    "typescript": "^2.8.1"
+  },
+  "dependencies": {
+    "@melonproject/graphql-schema": "*",
+    "@melonproject/melon.js": "*",
+    "electron-is-dev": "^0.3.0",
+    "graphql-subscriptions": "^0.5.8",
+    "keytar": "^4.2.1"
+  }
+}

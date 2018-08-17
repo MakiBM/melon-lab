@@ -14,7 +14,7 @@
       "@melonproject/graphql-schema": ["../graphql-schema/src"],
       "@melonproject/manager-components": ["../manager-components/src"],
       "@melonproject/exchange-aggregator": ["../exchange-aggregator/src"],
-      "~/shared/*": ["./src/shared/$1"],
+      "~/wrappers/*": ["./src/wrappers/$1"],
       "~/legacy/*": ["./src/legacy/$1"],
       "~/components/*": ["../manager-components/src/components/$1"],
       "~/blocks/*": ["../manager-components/src/blocks/$1"],

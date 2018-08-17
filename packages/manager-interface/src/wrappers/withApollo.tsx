@@ -1,10 +1,13 @@
+// Import the introspection results (handled with a custom webpack loader)
+// for the schema.
+import introspection from '@melonproject/graphql-schema/schema.gql';
 import { InMemoryCache, IntrospectionFragmentMatcher } from 'apollo-cache-inmemory';
-import { HttpLink } from 'apollo-link-http';
-import { WebSocketLink } from 'apollo-link-ws';
-import withApollo from 'next-with-apollo';
 import ApolloClient from 'apollo-client';
 import { split } from 'apollo-link';
+import { HttpLink } from 'apollo-link-http';
+import { WebSocketLink } from 'apollo-link-ws';
 import { getMainDefinition } from 'apollo-utilities';
+import withApollo from 'next-with-apollo';
 
 const isSubscription = ({ query }) => {
   const { kind, operation } = getMainDefinition(query);
@@ -35,7 +38,7 @@ const createLink = options => {
   return split(isSubscription, wsLink, httpLink);
 };
 
-export default (introspection) => withApollo(options => {
+export default withApollo(options => {
   const link = createLink(options);
 
   return new ApolloClient({

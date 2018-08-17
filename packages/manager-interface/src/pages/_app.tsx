@@ -1,9 +1,8 @@
 import App, { Container } from 'next/app';
-import { Provider as ReduxProvider } from 'react-redux';
 import { ApolloProvider } from 'react-apollo';
 import React from 'react';
-import withApollo from '~/shared/wrappers/withApollo';
-import withReduxStore from '~/shared/wrappers/withReduxStore';
+import ReactModal from 'react-modal';
+import withApollo from '~/wrappers/withApollo';
 
 const debug = require('debug')('melon-lab:manager-interface:index');
 
@@ -29,22 +28,28 @@ if (typeof window !== 'undefined') {
   window.eval = global.eval = () => {
     throw new Error(`Sorry, this app does not support window.eval().`);
   };
+
+  if (process.env.NODE_ENV !== 'development') {
+    window.onbeforeunload = () =>
+      "Your session will be terminated. Did you save your mnemonic and/or JSON wallet?";
+  }
+
+  ReactModal.setAppElement('#__next');
 }
+
 
 class MelonApp extends App {
   public render() {
-    const { Component, apollo, redux, pageProps } = this.props;
+    const { Component, apollo, pageProps } = this.props;
 
     return (
       <Container>
-        <ReduxProvider store={redux}>
-          <ApolloProvider client={apollo}>
-            <Component {...pageProps} />
-          </ApolloProvider>
-        </ReduxProvider>
+        <ApolloProvider client={apollo}>
+          <Component {...pageProps} />
+        </ApolloProvider>
       </Container>
     );
   }
 }
 
-export default withApollo(withReduxStore(MelonApp));
+export default withApollo(MelonApp);
